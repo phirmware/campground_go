@@ -1,0 +1,59 @@
+package adapter
+
+import (
+	"fmt"
+
+	"github.com/jinzhu/gorm"
+)
+
+type Postgres struct {
+	DB *gorm.DB
+}
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "password"
+	dbname   = "postgres"
+)
+
+func connectDB(psqlInfo string) *gorm.DB {
+	db, err := gorm.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+func NewPostgresAdapter() *Postgres {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	db := connectDB(psqlInfo)
+	db.LogMode(true)
+
+	return &Postgres{
+		DB: db,
+	}
+}
+
+func (p *Postgres) AutoMigrate(model interface{}) error {
+	if err := p.DB.AutoMigrate(model).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Postgres) DestructiveReset(model interface{}) error {
+	if err := p.DB.DropTableIfExists(model).Error; err != nil {
+		return err
+	}
+	return p.AutoMigrate(model)
+}
+
+func (p *Postgres) Create(data interface{}) *gorm.DB {
+	return p.DB.Create(data)
+}
+
+func (p *Postgres) FindByUsername(username string, dst interface{}) error {
+	return p.DB.Where("username = ?", username).First(dst).Error
+}
