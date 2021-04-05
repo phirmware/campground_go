@@ -57,3 +57,11 @@ func (p *Postgres) Create(data interface{}) *gorm.DB {
 func (p *Postgres) FindByUsername(username string, dst interface{}) error {
 	return p.DB.Where("username = ?", username).First(dst).Error
 }
+
+func (p *Postgres) FindByName(name string, dst interface{}) error {
+	return p.DB.Where("name = ?", name).First(dst).Error
+}
+
+func (p *Postgres) Find(dst interface{}) error {
+	return p.DB.Find(dst).Error
+}

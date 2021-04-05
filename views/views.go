@@ -2,6 +2,7 @@ package views
 
 import (
 	"html/template"
+	"net/http"
 	"path/filepath"
 )
 
@@ -35,6 +36,15 @@ func NewView() *Views {
 		CampgroundView: campgrounds,
 		LoginView:      login,
 		SignupView:     signup,
-		DashboardView: dashboard,
+		DashboardView:  dashboard,
 	}
+}
+
+func (v *Views) RenderUserPage(w http.ResponseWriter, path string, data interface{}) error {
+	t, err := template.ParseFiles("views/partials/nav.html", "views/user/" + path, "views/partials/bootstrap.html")
+	if err != nil {
+		return err
+	}
+
+	return t.ExecuteTemplate(w, "bootstrap", data)
 }
