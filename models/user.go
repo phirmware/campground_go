@@ -23,12 +23,14 @@ type User struct {
 	Username     string `gorm:"not null;unique_index"`
 	Password     string `gorm:"-"`
 	PasswordHash string `gorm:"not null"`
+	Comments     []Comment
 }
 
 func NewUser() *UserDB {
 	postgres := adapter.NewPostgresAdapter()
 	hmac := utils.NewHmac(Hash_key)
 	// postgres.DestructiveReset(&User{})
+	postgres.AutoMigrate(&User{})
 	return &UserDB{
 		postgres: postgres,
 		hmac:     hmac,
@@ -52,6 +54,14 @@ func (u *UserDB) FindByUsername(username string) (*User, error) {
 	var user User
 	if err := u.postgres.FindByUsername(username, &user); err != nil {
 		return nil, errors.New("Could not find user")
+	}
+	return &user, nil
+}
+
+func (u *UserDB) FindUserByID(id uint) (*User, error) {
+	var user User
+	if err := u.postgres.FindByID(id, &user); err != nil {
+		return nil, err
 	}
 	return &user, nil
 }

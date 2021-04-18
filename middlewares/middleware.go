@@ -9,6 +9,8 @@ type Middleware struct {
 	session *session.Session
 }
 
+type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
 func NewMiddleware() *Middleware {
 	session := session.NewSession()
 	return &Middleware{

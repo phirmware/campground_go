@@ -2,6 +2,7 @@ package services
 
 import (
 	"campground_go/models"
+	"campground_go/session"
 	"campground_go/utils"
 	"errors"
 )
@@ -10,21 +11,24 @@ const (
 	Hash_key = "Hash_key_secret"
 )
 
-type UserSerice struct {
-	UserDB *models.UserDB
-	hmac   utils.HMAC
+type UserService struct {
+	UserDB  *models.UserDB
+	hmac    utils.HMAC
+	session *session.Session
 }
 
-func NewUserService() *UserSerice {
+func NewUserService() *UserService {
 	user := models.NewUser()
 	hmac := utils.NewHmac(Hash_key)
-	return &UserSerice{
-		UserDB: user,
-		hmac:   hmac,
+	s := session.NewSession()
+	return &UserService{
+		UserDB:  user,
+		hmac:    hmac,
+		session: s,
 	}
 }
 
-func (us *UserSerice) Authenticate(user *models.User) (*models.User, error) {
+func (us *UserService) Authenticate(user *models.User) (*models.User, error) {
 	foundUser, err := us.UserDB.FindByUsername(user.Username)
 	if err != nil {
 		return nil, err

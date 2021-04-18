@@ -16,13 +16,22 @@ var (
 )
 
 type Session struct {
-	store *sessions.CookieStore
+	UserDB *models.UserDB
+	store  *sessions.CookieStore
+}
+
+type SessionValues struct {
+	Authenticated bool
+	Username      string
+	UserId        uint
 }
 
 func NewSession() *Session {
 	store := sessions.NewCookieStore(key)
+	userDB := models.NewUser()
 	return &Session{
-		store: store,
+		store:  store,
+		UserDB: userDB,
 	}
 }
 
@@ -58,8 +67,30 @@ func (s *Session) AuthenticateSession(w http.ResponseWriter, r *http.Request) er
 		return errors.New("Invalid session")
 	}
 
-	username := session.Values["username"]
+	id, _ := session.Values["id"].(uint)
 
-	fmt.Println(username, "From session authenticator")
+	user, err := s.UserDB.FindUserByID(uint(id))
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("From session authenticator - %+v", user)
 	return nil
+}
+
+func (s *Session) GetSessionValues(w http.ResponseWriter, r *http.Request) (SessionValues, error) {
+	session, _ := s.store.Get(r, cookie_name)
+
+	username := session.Values["username"]
+	authenticated, _ := session.Values["authenticated"].(bool)
+	id, _ := session.Values["id"].(uint)
+
+	value := SessionValues{
+		Username:      fmt.Sprintf("%s", username),
+		Authenticated: authenticated,
+		UserId:        id,
+	}
+
+	return value, nil
+
 }
