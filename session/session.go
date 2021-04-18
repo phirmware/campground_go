@@ -19,6 +19,12 @@ type Session struct {
 	store *sessions.CookieStore
 }
 
+type SessionValues struct {
+	Authenticated bool
+	Username      string
+	UserId        uint
+}
+
 func NewSession() *Session {
 	store := sessions.NewCookieStore(key)
 	return &Session{
@@ -62,4 +68,21 @@ func (s *Session) AuthenticateSession(w http.ResponseWriter, r *http.Request) er
 
 	fmt.Println(username, "From session authenticator")
 	return nil
+}
+
+func (s *Session) GetSessionValues(w http.ResponseWriter, r *http.Request) (SessionValues, error) {
+	session, _ := s.store.Get(r, cookie_name)
+
+	username := session.Values["username"]
+	authenticated, _ := session.Values["authenticated"].(bool)
+	id, _ := session.Values["id"].(uint)
+
+	value := SessionValues{
+		Username:      fmt.Sprintf("%s", username),
+		Authenticated: authenticated,
+		UserId:        id,
+	}
+
+	return value, nil
+
 }

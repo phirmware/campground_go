@@ -7,11 +7,14 @@ import (
 	"campground_go/utils"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type UserController struct {
 	UserDB      *models.UserDB
-	UserService *services.UserSerice
+	CommentDB   *models.CommentDB
+	UserService *services.UserService
 	Session     *session.Session
 }
 
@@ -20,12 +23,18 @@ type UserForm struct {
 	Password string
 }
 
+type CommentForm struct {
+	Comment string
+}
+
 func NewUser() *UserController {
 	userDB := models.NewUser()
+	commentDB := models.NewComment()
 	userService := services.NewUserService()
 	session := session.NewSession()
 	return &UserController{
 		UserDB:      userDB,
+		CommentDB:   commentDB,
 		UserService: userService,
 		Session:     session,
 	}
@@ -94,4 +103,30 @@ func (u *UserController) authenticateUser(w http.ResponseWriter, r *http.Request
 	}
 
 	return nil
+}
+
+func (u *UserController) CreateComment(w http.ResponseWriter, r *http.Request) {
+	session, err := u.Session.GetSessionValues(w, r)
+	if err != nil {
+		panic(err)
+	}
+
+	params := mux.Vars(r)
+
+	var body CommentForm
+	if err := utils.GetRequestBody(r, &body); err != nil {
+		panic(err)
+	}
+
+	comment := &models.Comment{
+		Comment:        body.Comment,
+		UserID:         session.UserId,
+		CampgroundName: params["name"],
+	}
+
+	if err := u.CommentDB.CreateComment(comment); err != nil {
+		panic(err)
+	}
+
+	http.Redirect(w, r, "/campground/" + params["name"], http.StatusFound)
 }

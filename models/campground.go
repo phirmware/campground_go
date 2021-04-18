@@ -16,21 +16,20 @@ type Campground struct {
 	Name        string `gorm:"not null;unique_index"`
 	Description string `gorm:"not null"`
 	Image       string `gorm:"not null"`
+	OwnerID     uint   `gorm:"not null"`
 }
 
 func NewCampground() *CampgroundDB {
 	postgres := adapter.NewPostgresAdapter()
 	// postgres.DestructiveReset(&Campground{})
+	// postgres.AutoMigrate(&Campground{})
 	return &CampgroundDB{
 		postgres: postgres,
 	}
 }
 
 func (c *CampgroundDB) Create(campground *Campground) error {
-	if err := c.postgres.Create(campground).Error; err != nil {
-		return err
-	}
-	return nil
+	return c.postgres.Create(campground).Error
 }
 
 func (c *CampgroundDB) FindByName(name string) (*Campground, error) {
@@ -47,4 +46,18 @@ func (c *CampgroundDB) Find() (*[]Campground, error) {
 		return nil, err
 	}
 	return &campgrounds, nil
+}
+
+func (c *CampgroundDB) FindUsersCampgroundsByOwnerID(ownerID uint) (*[]Campground, error) {
+	var campgrounds []Campground
+
+	if err := c.postgres.FindByQuery("owner_id = ?", ownerID, &campgrounds); err != nil {
+		return nil, err
+	}
+
+	return &campgrounds, nil
+}
+
+func (c *CampgroundDB) DeleteByName(name string) error {
+	return c.postgres.Delete(name, &Campground{})
 }

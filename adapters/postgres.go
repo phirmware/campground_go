@@ -54,6 +54,14 @@ func (p *Postgres) Create(data interface{}) *gorm.DB {
 	return p.DB.Create(data)
 }
 
+func (p *Postgres) FindByQuery(query string, queryValue interface{}, dst interface{}) error {
+	return p.DB.Where(query, queryValue).Find(dst).Error
+}
+
+func (p *Postgres) FindByQueryAndPreload(query string, queryValue interface{}, dst interface{}, preload string) error {
+	return p.DB.Preload(preload).Where(query, queryValue).Find(dst).Error
+}
+
 func (p *Postgres) FindByUsername(username string, dst interface{}) error {
 	return p.DB.Where("username = ?", username).First(dst).Error
 }
@@ -64,4 +72,8 @@ func (p *Postgres) FindByName(name string, dst interface{}) error {
 
 func (p *Postgres) Find(dst interface{}) error {
 	return p.DB.Find(dst).Error
+}
+
+func (p *Postgres) Delete(name string, dst interface{}) error {
+	return p.DB.Where("name = ?", name).Delete(dst).Error
 }
