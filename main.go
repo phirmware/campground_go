@@ -30,6 +30,6 @@ func main() {
 	r.HandleFunc("/signup", userC.RegisterUser).Methods("POST")
 	r.HandleFunc("/dashboard", middleware.IsUserLoggedIn(staticC.HandleDashboard)).Methods("GET")
 
-	fmt.Println(fmt.Sprintf("Server running on port %s", PORT))
+	fmt.Println(fmt.Sprintf("Server running on port %s from new-branch", PORT))
 	http.ListenAndServe(PORT, r)
 }
